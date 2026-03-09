@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Download</title>
+<style>
+body{
+font-family:Arial;
+text-align:center;
+margin-top:100px;
+}
+button{
+padding:15px 30px;
+font-size:18px;
+margin:10px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Download my file</h1>
+
+<p>If you like it please support me ❤️</p>
+
+<a href="https://send.monobank.ua/XXXX">
+<button>Donate</button>
+</a>
+
+<br><br>
+
+<button onclick="downloadFile()">Download</button>
+
+<script>
+function downloadFile(){
+
+if(localStorage.getItem("downloaded")){
+alert("File already downloaded");
+return;
+}
+
+localStorage.setItem("downloaded",true);
+
+window.location.href="FILE_LINK";
+}
+</script>
+
+</body>
+</html>
