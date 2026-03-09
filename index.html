@@ -54,6 +54,22 @@
       font-size: 16px;
       border-radius: 8px;
     }
+
+    .hint {
+      margin: 16px auto;
+      max-width: 700px;
+      background: #fff7e6;
+      border: 1px solid #ffd591;
+      border-radius: 10px;
+      padding: 12px;
+      color: #5c3b00;
+    }
+
+    .hint button {
+      margin-top: 10px;
+      background: #d97706;
+      color: #fff;
+    }
   </style>
 </head>
 <body>
@@ -64,6 +80,8 @@
     <a class="donate" href="https://www.privat24.ua/send/iz2bk" target="_blank" rel="noopener noreferrer">Підтримати через Приват Банк</a>
 
     <a class="donate" href="https://send.monobank.ua/jar/3BSnRdBti2" target="_blank" rel="noopener noreferrer">Підтримати через Monobank</a>
+
+    <div id="browserHint" class="hint" hidden></div>
 
     <div id="songs"></div>
   </div>
@@ -93,6 +111,7 @@
     ];
 
     const REMOTE_MUSIC_BASE_URL = 'https://raw.githubusercontent.com/download-music/zvukamusicua/main/music/';
+    const EMBEDDED_BROWSER_MARKERS = ['Instagram', 'FBAN', 'FBAV', 'FB_IAB', 'Line', 'Twitter'];
 
     function getSongDownloadKey(fileName) {
       return `downloaded:${encodeURIComponent(fileName)}`;
@@ -109,6 +128,42 @@
     function setButtonAsDownloaded(button) {
       button.disabled = true;
       button.textContent = 'Вже скачано';
+    }
+
+    function isEmbeddedBrowser() {
+      const userAgent = navigator.userAgent || '';
+      const hasKnownMarker = EMBEDDED_BROWSER_MARKERS.some((marker) => userAgent.includes(marker));
+      const isAndroidWebView = /Android/i.test(userAgent) && /\bwv\b/i.test(userAgent);
+      return hasKnownMarker || isAndroidWebView;
+    }
+
+    function openInExternalBrowser() {
+      const currentUrl = window.location.href;
+
+      if (/Android/i.test(navigator.userAgent) && /^https?:\/\//i.test(currentUrl)) {
+        const hostAndPath = currentUrl.replace(/^https?:\/\//i, '');
+        window.location.href = `intent://${hostAndPath}#Intent;scheme=https;package=com.android.chrome;end`;
+        return;
+      }
+
+      window.open(currentUrl, '_blank', 'noopener,noreferrer');
+    }
+
+    function renderEmbeddedBrowserHint() {
+      if (!isEmbeddedBrowser()) {
+        return;
+      }
+
+      const hint = document.getElementById('browserHint');
+      hint.hidden = false;
+      hint.innerHTML = '<strong>Вбудований браузер:</strong> у Instagram/Facebook скачування може блокуватись. Відкрийте сторінку у Chrome/Safari для стабільного завантаження.';
+
+      const openButton = document.createElement('button');
+      openButton.type = 'button';
+      openButton.textContent = 'Відкрити у зовнішньому браузері';
+      openButton.addEventListener('click', openInExternalBrowser);
+      hint.appendChild(document.createElement('br'));
+      hint.appendChild(openButton);
     }
 
     function triggerDownload(url, fileName) {
@@ -159,7 +214,12 @@
       } catch (error) {
         button.disabled = false;
         button.textContent = 'Скачати';
-        alert('Помилка завантаження. Перевірте інтернет і наявність файлу в репозиторії.');
+
+        if (isEmbeddedBrowser()) {
+          alert('Вбудований браузер блокує автоматичне скачування. Натисніть "Відкрити у зовнішньому браузері" і повторіть завантаження.');
+        } else {
+          alert('Помилка завантаження. Перевірте інтернет і наявність файлу в репозиторії.');
+        }
       }
     }
 
@@ -183,6 +243,8 @@
       songBlock.appendChild(button);
       songsContainer.appendChild(songBlock);
     });
+
+    renderEmbeddedBrowserHint();
   </script>
 </body>
 </html>
