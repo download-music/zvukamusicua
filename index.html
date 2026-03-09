@@ -113,23 +113,6 @@
     const REMOTE_MUSIC_BASE_URL = 'https://raw.githubusercontent.com/download-music/zvukamusicua/main/music/';
     const EMBEDDED_BROWSER_MARKERS = ['Instagram', 'FBAN', 'FBAV', 'FB_IAB', 'Line', 'Twitter'];
 
-    function getSongDownloadKey(fileName) {
-      return `downloaded:${encodeURIComponent(fileName)}`;
-    }
-
-    function hasDownloadedSong(fileName) {
-      return localStorage.getItem(getSongDownloadKey(fileName)) === 'true';
-    }
-
-    function markSongDownloaded(fileName) {
-      localStorage.setItem(getSongDownloadKey(fileName), 'true');
-    }
-
-    function setButtonAsDownloaded(button) {
-      button.disabled = true;
-      button.textContent = 'Вже скачано';
-    }
-
     function isEmbeddedBrowser() {
       const userAgent = navigator.userAgent || '';
       const hasKnownMarker = EMBEDDED_BROWSER_MARKERS.some((marker) => userAgent.includes(marker));
@@ -184,12 +167,6 @@
     }
 
     async function downloadSong(fileName, button) {
-      if (hasDownloadedSong(fileName)) {
-        setButtonAsDownloaded(button);
-        alert('Цю пісню вже було скачано. Повторне скачування недоступне.');
-        return;
-      }
-
       button.disabled = true;
       button.textContent = 'Завантаження...';
 
@@ -209,8 +186,8 @@
         triggerDownload(objectUrl, fileName);
 
         setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
-        markSongDownloaded(fileName);
-        setButtonAsDownloaded(button);
+        button.disabled = false;
+        button.textContent = 'Скачати';
       } catch (error) {
         button.disabled = false;
         button.textContent = 'Скачати';
@@ -235,8 +212,7 @@
       const button = document.createElement('button');
       button.className = 'download';
       button.type = 'button';
-      button.textContent = hasDownloadedSong(song.file) ? 'Вже скачано' : 'Скачати';
-      button.disabled = hasDownloadedSong(song.file);
+      button.textContent = 'Скачати';
       button.addEventListener('click', () => downloadSong(song.file, button));
 
       songBlock.appendChild(title);
